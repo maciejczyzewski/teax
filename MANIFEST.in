@@ -1,0 +1,4 @@
+recursive-include teax *
+include README.md
+include LICENSE
+
