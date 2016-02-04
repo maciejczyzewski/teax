@@ -1,0 +1,4 @@
+dist/
+build/
+teax.egg-info/
+*.pyc
