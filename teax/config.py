@@ -14,7 +14,10 @@ except ImportError:
 
 class ConfigObject(object):
     """
-    Class which holds the configuration values.
+    Config class for specifying teax specific optional items via a INI
+    configuration file format. The main configuration class provides utilities
+    for loading the configuration from disk and iterating across all the
+    settings.
 
         >>> conf = ConfigObject('my_config.ini')
         >>> print conf['book']
@@ -27,100 +30,94 @@ class ConfigObject(object):
         >>> print conf['book']
         {'test': {'a': 1234, 'b': 4321}, u'author': u'MAC'}
 
-    All values used in command-line interface should be here.
+    All values or options used in command-line interface should be here.
+    Subclasses of the configuration specify defaults that can be updated via
+    the configuration file.
     """
-
     # Environment:
-    STORAGE = {}         #: Holds local & loaded variables
-    FILENAME = ''        #: Where the configuration file is located
+    FILENAME = 'teax.ini'  #: Where the configuration file is located
 
-    # Temporaries:
-    _INSTANCE = None     #: Last loaded instance of ConfigParser()
+    # Mode:
+    M_LOAD_LOCALS = True   #: If positive loads the local environment
 
-    def __init__(self, filename='teax.ini'):
-        self.load(filename)  # Load local environment...
+    def __init__(self, filename=FILENAME):
+        self.__storage = {}
+        self.__filename = ''
+        self.__config_parser = None
+
+        if self.M_LOAD_LOCALS:
+            self.load(filename)
 
     def load(self, filename=''):
-        """ Loads configuration file. """
+        """Load configuration file.
+        Try to load local or last configuration environment. If none of them
+        specified, it overwrites old values.
+        """
         if os.path.isfile(filename):
-            self.FILENAME = filename
-            self._load_instance()
-        # Load last instance...
-        if self._INSTANCE:
-            _variables = self._convert_to_dict(self._INSTANCE)
-            self.STORAGE = self._merge_dicts(self.STORAGE, _variables)
+            self.__filename = filename
+            self.__load_instance()
+        if self.__config_parser:
+            data = self.__convert_to_dict(self.__config_parser)
+            self.__storage = self.__merge_dicts(self.__storage, data)
 
     def save(self, filename, keys):
-        cfgfile = open(filename, 'w')
-        # If there is no instance...
-        if not self._INSTANCE:
-            self._INSTANCE = configparser.ConfigParser()
-        # Lets create that config file for next time.
+        """Save current configuration data to file.
+        For safety reasons it writes to file only those values which will be
+        indicated. It uses the current instance of config parser.
+        """
+        config_file = open(filename, 'w')
+        if not self.__config_parser:
+            self.__config_parser = configparser.ConfigParser()
         for key in keys:
-            section, keyword = self._parse_address(key)
-            if section not in self._INSTANCE.sections():
-                self._INSTANCE.add_section(section)
-            # Write it permanently.
-            self._INSTANCE.set(section, keyword, self.__getitem__(key))
-        # Save to file.
-        self._INSTANCE.write(cfgfile)
-        cfgfile.close()
+            section, keyword = self.__parse_address(key)
+            if section not in self.__config_parser.sections():
+                self.__config_parser.add_section(section)
+            self.__config_parser.set(section, keyword, self.__getitem__(key))
+        self.__config_parser.write(config_file)
+        config_file.close()
 
     def __getitem__(self, key):
-        level = len(self._parse_address(key))
-        if level == 2:
-            # 2d-layer -> return Variable()
-            section, keyword = self._parse_address(key)
-            if section in self.STORAGE and \
-               keyword in self.STORAGE[section]:
-                return self.STORAGE[section][keyword]
-            return None
-        elif level == 1:
-            # 1d-layer -> return Dict()
-            if key in self.STORAGE:
-                return self.STORAGE[key]
-            return None
-        else:
-            # Return as map of dicts.
-            return self.STORAGE
+        if not key:
+            return self.__storage
+        if len(self.__parse_address(key)) >= 2:
+            section, keyword = self.__parse_address(key)
+            if section in self.__storage and \
+               keyword in self.__storage[section]:
+                return self.__storage[section][keyword]
+        elif key in self.__storage:
+            return self.__storage[key]
+        return None
 
     def __setitem__(self, key, value):
-        # Set variable (but not save in file).
-        section, keyword = self._parse_address(key)
-        if not section in self.STORAGE:
-            self.STORAGE[section] = {}
-        self.STORAGE[section][keyword] = value
+        section, keyword = self.__parse_address(key)
+        if section not in self.__storage:
+            self.__storage[section] = {}
+        self.__storage[section][keyword] = value
 
-    def _load_instance(self):
-        # Use ConfigParser() to parser .ini files.
+    def __load_instance(self):
         try:
-            self._INSTANCE = configparser.ConfigParser()
-            self._INSTANCE.read(self.FILENAME)
+            self.__config_parser = configparser.ConfigParser()
+            self.__config_parser.read(self.__filename)
         except:
             tty.warning(T_CONF_FILE_FAILURE)
 
-    def _convert_to_dict(self, instance, _dict={}):
-        # ConfigParser() instance to Dict()
+    def __convert_to_dict(self, instance, data={}):
         for section in instance.sections():
-            _dict[section] = {}
+            data[section] = {}
             for key, val in instance.items(section):
-                _dict[section][key] = val
-        return _dict
+                data[section][key] = val
+        return data
 
-    def _merge_dicts(self, left, right, path=[]):
+    def __merge_dicts(self, left, right, path=[]):
         for key in right:
-            # Merge b --> a (dicts in dicts)
-            if key in left and isinstance(
-                    left[key],
-                    dict) and isinstance(
-                    right[key],
-                    dict):
-                self._merge_dicts(left[key], right[key], path + [str(key)])
+            if key not in left:
+                left[key] = right[key]
+                continue
+            if (type(left[key]) and type(right[key])) is dict:
+                self.__merge_dicts(left[key], right[key], path + [str(key)])
             else:
                 left[key] = right[key]
         return left
 
-    def _parse_address(self, string):
-        if not string:
-            return []
-        return string.split('.')  # a.b.c --> [a][b][c]
+    def __parse_address(self, string):
+        return filter(None, string.split('.'))
