@@ -150,10 +150,10 @@ class TerminalController(object):
         """
         return re.sub(r'\$\$|\$\[\w+\]', self.__render_sub, template)
 
-    def wrap(self, string, indent=4):
+    def wrap(self, string, indent=4, subindent=4):
         """Wrap texts into specific length with the ability to pad."""
         return textwrap.fill(string, self.COLS - indent, subsequent_indent=' '
-                * indent)
+                * subindent)
 
     def __tigetstr(self, cap_name):
         # String capabilities can include "delays" of the form "$<2>".

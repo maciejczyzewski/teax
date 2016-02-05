@@ -6,7 +6,7 @@ import os
 from teax import tty
 
 def show_messages(messages):
-    T_MESSAGE_APPENDIX = 5 * ' ' + '$[BG_WHITE]$[BLACK] {0} $[NORMAL]'
+    T_MESSAGE_APPENDIX = 4 * ' ' + '$[BG_WHITE]$[BLACK] {0} $[NORMAL]'
 
     def __find_meta(message):
         data = []
