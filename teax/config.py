@@ -99,7 +99,7 @@ class ConfigObject(object):
             self.__config_parser = configparser.ConfigParser()
             self.__config_parser.read(self.__filename)
         except:
-            tty.warning(T_CONF_FILE_FAILURE)
+            tty.warn(T_CONF_FILE_FAILURE)
 
     def __convert_to_dict(self, instance, data={}):
         for section in instance.sections():

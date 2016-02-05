@@ -43,7 +43,7 @@ class CoreController:
         if not os.path.splitext(filename)[1]:
             filename = os.path.basename(filename) + '.tex'
         if not os.path.isfile(filename):
-            tty.error(T_FILE_NOT_EXISTS % filename)
+            tty.errn(T_FILE_NOT_EXISTS % filename)
         self.shelf['filename'] = filename
 
         engines_list = engines.analyze(filename)

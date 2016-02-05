@@ -37,7 +37,7 @@ class EngineFacade:
         try:
             adapter_cls = self.adapters[name]
         except KeyError:
-            tty.error(T_UNKNOWN_ADAPTER_NAME % name)
+            tty.errn(T_UNKNOWN_ADAPTER_NAME % name)
 
         adapter = adapter_cls(filename)
         adapter.start()
