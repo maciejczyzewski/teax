@@ -89,7 +89,7 @@ class TerminalController(object):
         output; if this stream is not a tty, then the terminal is
         assumed to be a dumb terminal (i.e., have no capabilities).
         """
-        # Curses isn't available on all platforms
+        # Curses isn't available on all platforms.
         try:
             import curses
         except:
@@ -99,7 +99,7 @@ class TerminalController(object):
         if not term_stream.isatty():
             return
 
-        # Check the terminal type.  If we fail, then assume that the
+        # Check the terminal type. If we fail, then assume that the
         # terminal has no capabilities.
         try:
             curses.setupterm()
@@ -113,24 +113,24 @@ class TerminalController(object):
         # Look up string capabilities.
         for capability in self._STRING_CAPABILITIES:
             (attrib, cap_name) = capability.split('=')
-            setattr(self, attrib, self._tigetstr(cap_name) or '')
+            setattr(self, attrib, self.__tigetstr(cap_name) or '')
 
-        # Colors
-        set_fg = self._tigetstr('setf')
+        # Processing colors.
+        set_fg = self.__tigetstr('setf')
         if set_fg:
             for i, color in zip(range(len(self._COLORS)), self._COLORS):
                 setattr(self, color, curses.tparm(set_fg, i) or '')
-        set_fg_ansi = self._tigetstr('setaf')
+        set_fg_ansi = self.__tigetstr('setaf')
         if set_fg_ansi:
             for i, color in zip(
                     range(len(self._ANSICOLORS)),
                     self._ANSICOLORS):
                 setattr(self, color, curses.tparm(set_fg_ansi, i) or '')
-        set_bg = self._tigetstr('setb')
+        set_bg = self.__tigetstr('setb')
         if set_bg:
             for i, color in zip(range(len(self._COLORS)), self._COLORS):
                 setattr(self, 'BG_' + color, curses.tparm(set_bg, i) or '')
-        set_bg_ansi = self._tigetstr('setab')
+        set_bg_ansi = self.__tigetstr('setab')
         if set_bg_ansi:
             for i, color in zip(
                     range(len(self._ANSICOLORS)),
@@ -142,7 +142,20 @@ class TerminalController(object):
                         set_bg_ansi,
                         i) or '')
 
-    def _tigetstr(self, cap_name):
+    def render(self, template):
+        """
+        Replace each $-substitutions in the given template string with
+        the corresponding terminal control string (if it's defined) or
+        '' (if it's not).
+        """
+        return re.sub(r'\$\$|\$\[\w+\]', self.__render_sub, template)
+
+    def wrap(self, string, indent=4, subindent=4):
+        """Wrap texts into specific length with the ability to pad."""
+        return textwrap.fill(string, self.COLS - indent, subsequent_indent=' '
+                * subindent)
+
+    def __tigetstr(self, cap_name):
         # String capabilities can include "delays" of the form "$<2>".
         # For any modern terminal, we should be able to just ignore
         # these, so strip them out.
@@ -150,78 +163,50 @@ class TerminalController(object):
         cap = curses.tigetstr(cap_name) or ''
         return re.sub(r'\$<\d+>[/*]?', '', cap)
 
-    def render(self, template):
-        """
-        Replace each $-substitutions in the given template string with
-        the corresponding terminal control string (if it's defined) or
-        '' (if it's not).
-        """
-        return re.sub(r'\$\$|\$\[\w+\]', self._render_sub, template)
-
-    def _wrap_content(self, string, indent=4):
-        return textwrap.fill(string, self.COLS - indent, subsequent_indent=' '
-                * indent)
-
-    def _render_sub(self, match):
-        s = match.group()
-        if s == '$$':
-            return s
+    def __render_sub(self, match):
+        string = match.group()
+        if string == '$$':
+            return string
         else:
-            return getattr(self, s[2:-1])
+            return getattr(self, string[2:-1])
 
 
 class TerminalObject(TerminalController):
     """
-    Create a `TerminalController` and initialize its attributes
-    with appropriate values for the current terminal.
-    `term_stream` is the stream that will be used for terminal
-    output; if this stream is not a tty, then the terminal is
-    assumed to be a dumb terminal (i.e., have no capabilities).
+    This class gives the ability to create a ready-made elements of UI.
+
+        >>> TerminalObject().warn('It will be risky, but do not worry!')
+        [W] It will be risky, but do not worry!
+
+    Generally, the goal of user interface design is to produce a user interface
+    which makes it easy (self explanatory), efficient, and enjoyable (user
+    friendly) to operate a teax in the way which produces the desired result.
     """
     # Templates:
     T_SECTION = "$[BG_MAGENTA]=== {0} ===$[NORMAL]"
 
     # Console:
-    T_INFO = "$[GREEN][+]$[NORMAL] {0}"
+    T_NOTE = "$[GREEN][+]$[NORMAL] {0}"
     T_WARNING = "$[YELLOW][W]$[NORMAL] {0}"
     T_ERROR = "$[RED][E]$[NORMAL] {0}"
 
-    """
-    Create a `TerminalController` and initialize its attributes
-    with appropriate values for the current terminal.
-    `term_stream` is the stream that will be used for terminal
-    output; if this stream is not a tty, then the terminal is
-    assumed to be a dumb terminal (i.e., have no capabilities).
-    """
-
     def echo(self, string):
+        """Display template in the terminal."""
         print(self.render(string))
 
-    """
-    Create a `TerminalController` and initialize its attributes
-    with appropriate values for the current terminal.
-    `term_stream` is the stream that will be used for terminal
-    output; if this stream is not a tty, then the terminal is
-    assumed to be a dumb terminal (i.e., have no capabilities).
-    """
+    #== Elements
 
     def section(self, string):
         self.echo(self.T_SECTION.format(string))
 
-    """
-    Create a `TerminalController` and initialize its attributes
-    with appropriate values for the current terminal.
-    `term_stream` is the stream that will be used for terminal
-    output; if this stream is not a tty, then the terminal is
-    assumed to be a dumb terminal (i.e., have no capabilities).
-    """
+    #== Messages
 
-    def info(self, string):
-        self.echo(self.T_INFO.format(self._wrap_content(string, 4)))
+    def note(self, string):
+        self.echo(self.T_NOTE.format(self.wrap(string, 4)))
 
-    def warning(self, string):
-        self.echo(self.T_WARNING.format(self._wrap_content(string, 4)))
+    def warn(self, string):
+        self.echo(self.T_WARNING.format(self.wrap(string, 4)))
 
-    def error(self, string):
-        self.echo(self.T_ERROR.format(self._wrap_content(string, 4)))
+    def errn(self, string):
+        self.echo(self.T_ERROR.format(self.wrap(string, 4)))
         sys.exit(1)

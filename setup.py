@@ -20,7 +20,7 @@ setup(
     license=LICENSE,
     author=AUTHOR,
     author_email=EMAIL,
-    description=DESCRIPTION,
+    description=' '.join(DESCRIPTION),
     long_description=LONG_DESCRIPTION,
     packages=find_packages(),
     include_package_data=True,

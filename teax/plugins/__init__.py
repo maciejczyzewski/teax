@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""teax adapter initialization"""
+"""teax's adapters initialization"""
 
 import teax.plugins.bibtex
 import teax.plugins.makeindex

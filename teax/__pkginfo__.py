@@ -13,12 +13,18 @@ EMAIL = "mail@maciejczyzewski.me"
 
 #== Information
 
-URL = "http://maciejczyzewski.me/teax"
+URL = "http://maciejczyzewski.me/teax/"
 
-DESCRIPTION = ("Command line utilities for TeX."
+DESCRIPTION = ("Command line utilities for TeX.",
                "Arm yourself with secret powers!")
 
-LONG_DESCRIPTION = open('README.md', 'rt').read()
+LONG_DESCRIPTION = """
+This project is in the **early stage** of development. The goal was to make \
+package that will speed up work on own **document/paper/book**. Please feel \
+free to contribute to this project! Pull requests and feature requests welcome!
+
+https://github.com/maciejczyzewski/teax/
+"""
 
 CLASSIFIERS = [
     'Environment :: Console',
