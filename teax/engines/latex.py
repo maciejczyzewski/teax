@@ -26,7 +26,7 @@ class LatexEngine(EngineObject):
         # Virtual LaTeX file, in our local cache
         _ftex = os.path.basename(self.filename)
         # Command for compiling LaTeX document
-        _cmd = ' '.join(['pdflatex'] + self.flags + [_ftex])
+        _cmd = ' '.join(['xelatex'] + self.flags + [_ftex])
         # Preparing bridge (papir <--> latex), communication
         p = subprocess.Popen(_cmd, shell=True, stdout=subprocess.PIPE)
         # Grab stdout line by line as it becomes available.  This will loop until
