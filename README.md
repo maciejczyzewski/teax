@@ -2,12 +2,12 @@
 
 _**Teax —** Command line utilities for TeX. Arm yourself with secret powers!_
 
-> This project is in the __early stage__ of development. The goal was to make package that will speed up work on own __document/paper/book__. Please feel free to contribute to this project! Pull requests and feature requests welcome!
+> This project is in the __early stage__ of development. The goal was to make package that will speed up work on own __document/paper/book__. Please feel free to contribute to this project! Pull requests and feature requests are welcome!
 
 #### FEATURES
 
 * **Easy**. Dozens of ready-to-use boilerplates.
-* **Automatic**. User-friendly build environment do the whole work.
+* **Automatic**. User-friendly build environment does the whole work.
 * **Multipurpose**. Understand different variants like TeX/LaTeX/ConTeXt/Texinfo.
 
 #### SCREENCAST
@@ -21,7 +21,7 @@ Build Environment          | Template Manager
 
 #### INSTALLATION
 
-The current version of Teax to work properly needs basic LaTeX/TeX tools. Oneself can do this by installing [Texlive](https://www.tug.org/texlive/) or [MacTex](https://tug.org/mactex/).
+The current version of Teax needs basic LaTeX/TeX tools to work properly. One can do this by installing [Texlive](https://www.tug.org/texlive/) or [MacTex](https://tug.org/mactex/).
 
 __Debian/Ubuntu__
 
