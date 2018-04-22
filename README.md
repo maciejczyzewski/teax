@@ -16,8 +16,8 @@ Build Environment          | Template Manager
 :-------------------------:|:-------------------------:
 ![][1]                     | ![][2]
 
-[1]: https://dl.dropboxusercontent.com/u/103345209/teax_build_example.png
-[2]: https://dl.dropboxusercontent.com/u/103345209/teax_new_example.png
+[1]: teax_build_example.png
+[2]: teax_new_example.png
 
 #### INSTALLATION
 
